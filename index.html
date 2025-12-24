@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Flashcard 5.0</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:#fff;color:#333;display:flex;flex-direction:column;align-items:center;position:relative;overflow-x:hidden;}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.35)),url("https://i.pinimg.com/1200x/db/f0/a2/dbf0a2792b6390b2a46c1e96f8cbfa5b.jpg") center/cover no-repeat;z-index:-2;filter:blur(2px);}
+#signature{position:fixed;bottom:12px;left:16px;font-size:.85rem;color:#999;opacity:.8;z-index:20;}
+#title{position:fixed;top:18px;left:20px;margin:0;font-size:3.5rem;font-family:'Great Vibes',cursive;color:white;z-index:20;letter-spacing:1px;}
+#counter{font-size:1.3rem;color:#555;margin-bottom:10px;z-index:10;}
+#lessonBtn{position:fixed;top:16px;right:20px;padding:12px 28px;border-radius:50px;border:none;background:#c41e3a;color:#fff;font-weight:700;cursor:pointer;z-index:20;}
+.lesson-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;}
+.lesson-content{background:#fff;width:90%;max-width:500px;border-radius:16px;padding:20px;border:2px solid #c41e3a;}
+.deck-item{padding:12px;margin:10px 0;background:#fff0f5;border-radius:12px;display:flex;justify-content:space-between;align-items:center;}
+.deck-item button{margin-left:8px;padding:6px 12px;font-size:0.9rem;}
+.deck-item button:nth-child(1){background:#4CAF50;}
+.deck-item button:nth-child(2){background:#f44336;}
+.deck-item button:nth-child(3){background:#2196F3;}
+.card{width:90%;max-width:900px;height:70vh;perspective:2000px;position:relative;cursor:pointer;user-select:none;z-index:10;margin-top:80px;margin-bottom:40px;}
+.inner{width:100%;height:100%;transform-style:preserve-3d;transition:.6s;}
+.flipped{transform:rotateY(180deg);}
+.side{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;font-size:6.2rem;font-weight:700;border-radius:24px;background:#fff;border:4px solid #c41e3a;color:#c41e3a;backface-visibility:hidden;text-align:center;padding:30px;}
+.back{transform:rotateY(180deg);}
+#editModeContainer{position:absolute;left:-120px;top:30%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:15;}
+button{padding:10px 18px;border:none;border-radius:12px;background:#c41e3a;color:#fff;font-weight:600;cursor:pointer;transition:0.3s;}
+button:hover{opacity:0.9;transform:scale(1.05);}
+.hidden{display:none!important;}
+.box{margin-top:20px;background:#fff;padding:20px;border-radius:16px;border:2px solid #c41e3a;width:90%;max-width:900px;z-index:10;}
+textarea{width:100%;min-height:140px;padding:12px;font-size:1.1rem;}
+.sakura-petal{position:fixed;top:-40px;font-size:16px;opacity:.35;pointer-events:none;z-index:0;animation:sakuraFall linear forwards;}
+@keyframes sakuraFall{0%{transform:translateX(0) translateY(-50px) rotate(0deg);}100%{transform:translateX(160px) translateY(110vh) rotate(360deg);}}
+.mark-btn{background:#fff;color:#333;border:2px solid #ccc;font-size:1rem;padding:10px 20px;border-radius:12px;transition:all 0.3s ease;}
+.mark-btn.active-known{background:#4CAF50;color:white;border-color:#4CAF50;}
+.mark-btn.active-unknown{background:#f44336;color:white;border-color:#f44336;}
+.nav-btn{background:#fff;color:#333;border:2px solid #ccc;font-size:1.1rem;padding:10px 20px;border-radius:12px;transition:all 0.3s ease;}
+.nav-btn:hover{background:#f0f0f0;}
+#filterContainer button{background:#fff;color:#333;border:2px solid #ccc;padding:10px 20px;margin:0 5px;border-radius:12px;transition:all 0.3s ease;}
+#filterContainer button.active{background:#c41e3a;color:white;border-color:#c41e3a;}
+#markContainer{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:none;gap:15px;}
+#navigationContainer{position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);display:flex;gap:20px;z-index:15;}
+</style>
+</head>
+<body>
+<div id="title">Flashcard 5.0</div>
+<div id="lessonBtn">Bài</div>
+<div id="signature">created by Den Khui</div>
+<div id="counter"></div>
+
+<div id="lessonModal" class="lesson-modal">
+  <div class="lesson-content">
+    <h3>𝕯𝖆𝖓𝖍 𝖘𝖆́𝖈𝖍 𝖈𝖆́𝖈 𝖇𝖆̀𝖎 𝖍𝖔̣𝖈 𝖈𝖚̉𝖆 𝖇𝖆̣𝖓</h3>
+    <button onclick="createCategory()">+ Tạo bài học</button>
+    <div id="categoryList"></div>
+    <button onclick="closeLesson()">Đóng</button>
+  </div>
+</div>
+
+<div id="deckModal" class="lesson-modal">
+  <div class="lesson-content">
+    <h3 id="deckModalTitle">Bộ bài</h3>
+    <button id="createDeckBtn">+ Tạo bài học</button>
+    <div id="deckList"></div>
+    <button onclick="closeDeckModal()">Đóng</button>
+  </div>
+</div>
+
+<div id="cardArea" class="card hidden">
+  <!-- Nút Chỉnh sửa và Trộn: bên trái ngoài, xếp dọc, xít lên cao hơn -->
+  <div id="editModeContainer">
+    <button onclick="toggleEdit()">Chỉnh sửa</button>
+    <button onclick="shuffleCards()">Trộn</button>
+  </div>
+
+  <div id="cardInner" class="inner">
+    <div class="side" id="front">—</div>
+    <div class="side back" id="back">—</div>
+  </div>
+
+  <!-- Nút Đã nhớ / Chưa nhớ bên trong flashcard, góc dưới -->
+  <div id="markContainer">
+    <button class="mark-btn" id="markKnown" onclick="markCard(true)">Đã nhớ ✔️</button>
+    <button class="mark-btn" id="markUnknown" onclick="markCard(false)">Chưa nhớ❌</button>
+  </div>
+
+  <!-- Nút Trước / Sau: bên ngoài dưới flashcard -->
+  <div id="navigationContainer">
+    <button class="nav-btn" onclick="prevCard()">⭠ Thẻ trước</button>
+    <button class="nav-btn" onclick="nextCard()">Thẻ sau ⭢</button>
+  </div>
+</div>
+
+<div id="importBox" class="box hidden">
+  <textarea id="input" placeholder="犬 - con chó"></textarea>
+  <button onclick="addCards()">Thêm</button>
+  <button onclick="deleteCard()">Xóa thẻ</button>
+</div>
+
+<div id="filterContainer" class="hidden" style="margin:20px 0; display:flex; justify-content:center;">
+  <button onclick="setFilter('all')">Tất cả</button>
+  <button onclick="setFilter('known')">Đã nhớ</button>
+  <button onclick="setFilter('unknown')">Chưa nhớ</button>
+</div>
+
+<script>
+// Giữ nguyên toàn bộ script trước đó
+const KEY = "flashcard5_data";
+let data = JSON.parse(localStorage.getItem(KEY) || '{"categories":[]}');
+let curCategoryIndex = null;
+let curDeckIndex = null;
+let cards = [], filteredCards = [], idx = 0, edit = false;
+let currentFilter = 'all';
+
+lessonBtn.onclick = () => { renderCategories(); lessonModal.style.display = "flex"; };
+
+function closeLesson() { lessonModal.style.display = "none"; }
+function closeDeckModal() { deckModal.style.display = "none"; curCategoryIndex = null; }
+
+function save() { localStorage.setItem(KEY, JSON.stringify(data)); }
+
+function renderCategories() {
+  categoryList.innerHTML = "";
+  data.categories.forEach((cat, i) => {
+    categoryList.innerHTML += `
+      <div class="deck-item">
+        <strong>${escapeHtml(cat.name)}</strong>
+        <div>
+          <button onclick="renameCategory(${i})">Đổi tên</button>
+          <button onclick="deleteCategory(${i})">Xóa</button>
+          <button onclick="openDeckModal(${i})">Mở</button>
+        </div>
+      </div>`;
+  });
+}
+
+function createCategory() {
+  const n = prompt("Tên folder mẹ:");
+  if (!n) return;
+  data.categories.push({ name: n, decks: [] });
+  save();
+  renderCategories();
+}
+
+function renameCategory(index) {
+  const newName = prompt("Nhập tên mới:", data.categories[index].name);
+  if (newName && newName.trim()) {
+    data.categories[index].name = newName.trim();
+    save();
+    renderCategories();
+  }
+}
+
+function deleteCategory(index) {
+  if (confirm(`Xóa folder "${data.categories[index].name}"?`)) {
+    data.categories.splice(index, 1);
+    save();
+    renderCategories();
+  }
+}
+
+function openDeckModal(index) {
+  curCategoryIndex = index;
+  const cat = data.categories[index];
+  deckModalTitle.textContent = `Bài Học - ${cat.name}`;
+  createDeckBtn.onclick = () => createDeckInCategory(index);
+  renderDecksInCategory(index);
+  deckModal.style.display = "flex";
+}
+
+function renderDecksInCategory(catIndex) {
+  deckList.innerHTML = "";
+  const decks = data.categories[catIndex].decks;
+  decks.sort((a, b) => {
+    const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+    const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+    return numA - numB;
+  });
+  decks.forEach((deck, deckIndex) => {
+    deckList.innerHTML += `
+      <div class="deck-item">
+        <strong>${escapeHtml(deck.name)}</strong>
+        <div>
+          <button onclick="renameDeck(${catIndex}, ${deckIndex})">Đổi tên</button>
+          <button onclick="deleteDeck(${catIndex}, ${deckIndex})">Xóa</button>
+          <button onclick="selectDeck(${catIndex}, ${deckIndex})">Chọn</button>
+        </div>
+      </div>`;
+  });
+}
+
+function createDeckInCategory(catIndex) {
+  const n = prompt("Tên bộ (ví dụ: bài 1, bài 45):");
+  if (!n) return;
+  data.categories[catIndex].decks.push({ name: n, cards: [] });
+  save();
+  renderDecksInCategory(catIndex);
+}
+
+function renameDeck(catIndex, deckIndex) {
+  const newName = prompt("Nhập tên mới:", data.categories[catIndex].decks[deckIndex].name);
+  if (newName && newName.trim()) {
+    data.categories[catIndex].decks[deckIndex].name = newName.trim();
+    save();
+    renderDecksInCategory(catIndex);
+  }
+}
+
+function deleteDeck(catIndex, deckIndex) {
+  if (confirm(`Xóa bộ "${data.categories[catIndex].decks[deckIndex].name}"?`)) {
+    data.categories[catIndex].decks.splice(deckIndex, 1);
+    save();
+    renderDecksInCategory(catIndex);
+  }
+}
+
+function selectDeck(catIndex, deckIndex) {
+  curCategoryIndex = catIndex;
+  curDeckIndex = deckIndex;
+  cards = data.categories[catIndex].decks[deckIndex].cards;
+  filteredCards = [...cards];
+  idx = 0;
+  currentFilter = 'all';
+  cardArea.classList.remove("hidden");
+  filterContainer.classList.remove("hidden");
+  render();
+  closeDeckModal();
+  closeLesson();
+}
+
+function render() {
+  if (!filteredCards.length) {
+    front.textContent = "Chưa có thẻ";
+    back.textContent = "—";
+    counter.textContent = "";
+    markContainer.style.display = "none";
+    return;
+  }
+  const card = filteredCards[idx];
+  front.textContent = card.f;
+  back.textContent = card.b;
+  counter.textContent = `${idx+1} / ${filteredCards.length}`;
+  cardInner.classList.remove("flipped");
+  markContainer.style.display = edit ? "none" : "flex";
+
+  document.getElementById("markKnown").classList.toggle("active-known", card.known === true);
+  document.getElementById("markUnknown").classList.toggle("active-unknown", card.known === false || card.known === undefined);
+}
+
+function toggleEdit() {
+  edit = !edit;
+  importBox.classList.toggle("hidden", !edit);
+  markContainer.style.display = edit ? "none" : (filteredCards.length ? "flex" : "none");
+}
+
+function markCard(isKnown) {
+  if (!filteredCards.length) return;
+  filteredCards[idx].known = isKnown;
+  const originalIndex = cards.indexOf(filteredCards[idx]);
+  if (originalIndex !== -1) cards[originalIndex].known = isKnown;
+  save();
+  render();
+}
+
+function prevCard() {
+  if (filteredCards.length) {
+    idx = (idx - 1 + filteredCards.length) % filteredCards.length;
+    render();
+  }
+}
+
+function nextCard() {
+  if (filteredCards.length) {
+    idx = (idx + 1) % filteredCards.length;
+    render();
+  }
+}
+
+function setFilter(filterType) {
+  currentFilter = filterType;
+  if (filterType === 'all') {
+    filteredCards = [...cards];
+  } else if (filterType === 'known') {
+    filteredCards = cards.filter(c => c.known === true);
+  } else if (filterType === 'unknown') {
+    filteredCards = cards.filter(c => c.known !== true);
+  }
+  idx = 0;
+  render();
+  document.querySelectorAll('#filterContainer button').forEach(btn => btn.classList.remove("active"));
+  document.querySelector(`#filterContainer button[onclick="setFilter('${filterType}')"]`).classList.add("active");
+}
+
+function addCards() {
+  if (!edit) return;
+  const lines = input.value.split("\n");
+  let added = 0;
+  lines.forEach(l => {
+    const m = l.match(/^(.+?)\s*[-–—－]\s*(.+)$/);
+    if (m) {
+      cards.push({ f: m[1].trim(), b: m[2].trim(), known: false });
+      added++;
+    }
+  });
+  input.value = "";
+  filteredCards = [...cards];
+  save();
+  render();
+  alert(`Đã thêm ${added} thẻ`);
+}
+
+function deleteCard() {
+  if (!edit || !filteredCards.length) return;
+  const originalIndex = cards.indexOf(filteredCards[idx]);
+  if (originalIndex !== -1) cards.splice(originalIndex, 1);
+  filteredCards.splice(idx, 1);
+  idx = Math.max(0, idx - 1);
+  save();
+  render();
+}
+
+function shuffleCards() {
+  filteredCards.sort(() => Math.random() - 0.5);
+  idx = 0;
+  render();
+}
+
+/* PHÍM TẮT */
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") { e.preventDefault(); cardInner.classList.toggle("flipped"); }
+  if (e.key === "ArrowRight" && filteredCards.length) { nextCard(); }
+  if (e.key === "ArrowLeft" && filteredCards.length) { prevCard(); }
+});
+cardArea.onclick = e => { if (e.target.tagName !== "BUTTON") cardInner.classList.toggle("flipped"); }
+
+/* SAKURA */
+(function startSakura(){
+  setInterval(() => {
+    const p = document.createElement("div");
+    p.className = "sakura-petal";
+    p.textContent = "🌸";
+    p.style.left = Math.random() * 100 + "vw";
+    p.style.animationDuration = (Math.random() * 1 + 8) + "s";
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 22000);
+  }, 300);
+})();
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>
